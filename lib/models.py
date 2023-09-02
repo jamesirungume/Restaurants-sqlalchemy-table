@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine,func
 from sqlalchemy import ForeignKey,Column,Integer,String,DateTime
+from sqlalchemy.orm import relationship,backref
 from sqlalchemy.ext.declarative import declarative_base
 
 engine = create_engine('sqlite:///restaurants.db')
@@ -12,6 +13,8 @@ class Restaurant(Base):
     name = Column(String())
     created_at = Column(DateTime(), server_default=func.now())
 
+    reviews = relationship('Review', backref= backref('restaurant'))
+
     def __repr__(self):
         return f'Restaurant(id ={self.id}, ' + \
             f'name = {self.name },' + \
@@ -19,8 +22,10 @@ class Restaurant(Base):
     
 class Customer(Base):
     __tablename__ = 'customers'
-    id = Column(integer(), primary_key=True)
-    name = Column(string())
+    id = Column(Integer(), primary_key=True)
+    name = Column(String())
+
+    reviews = relationship('Reviews', backref = backref('reviews'))
 
     def __repr__(self):
         return f'Customer(id = {self.id}' + \
@@ -28,9 +33,16 @@ class Customer(Base):
     
 class Review(Base):
     __tablename__ = 'reviews'
-    id = column(Integer(), primary_key=True)
+    id = Column(Integer(), primary_key=True)
     star_rating = Column(Integer())
+    created_at = Column(DateTime(), server_default=func.now())
+
+    restaurant_id = Column(Integer(), ForeignKey('restaurants.id'))
+    customer_id = Column(Integer(), ForeignKey('customers.id'))
+
+
 
     def __repr__(self):
         return f'Review(id = {self.id}' + \
-        f'star_rating = {self.star_rating})'
+        f'star_rating = {self.star_rating}' +\
+        f'created_at = {self.created_at})'
