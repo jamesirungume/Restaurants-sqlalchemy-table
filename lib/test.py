@@ -1,38 +1,56 @@
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Restaurant, Customer, engine
+from models import Base, Restaurant, Customer, Review  # Replace 'your_module' with the actual name of the module containing your SQLAlchemy code
 
-# Create a session
+# Create the database engine and bind it to your SQLAlchemy models
+engine = create_engine('sqlite:///restaurants.db')
+Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
 
-# Create instances of Restaurant and Customer
-restaurant1 = Restaurant(name="Restaurant 1")
-restaurant2 = Restaurant(name="Restaurant 2")
-customer1 = Customer(full_name="Customer 1")
-customer2 = Customer(full_name="Customer 2")
+if __name__ == '__main__':
+    # Create some sample data
+    restaurant1 = Restaurant(name='Restaurant 1', price=3)
+    restaurant2 = Restaurant(name='Restaurant 2', price=2)
 
-# Add the instances to the session
-session.add(restaurant1)
-session.add(restaurant2)
-session.add(customer1)
-session.add(customer2)
+    customer1 = Customer(full_name='John Doe')
+    customer2 = Customer(full_name='Jane Smith')
 
-# Establish the relationship using the association table
-restaurant1.customers.append(customer1)
-restaurant2.customers.append(customer2)
+    # Add the data to the session and commit the changes
+    session.add_all([restaurant1, restaurant2, customer1, customer2])
+    session.commit()
 
-# Commit the changes to the database
-session.commit()
+    review1 = Review(star_rating=4, restaurant=restaurant1, customer=customer1)
+    review2 = Review(star_rating=5, restaurant=restaurant2, customer=customer1)
+    review3 = Review(star_rating=3, restaurant=restaurant1, customer=customer2)
 
-# Now you can access the related data
-restaurants = session.query(Restaurant).all()
+    # Add the reviews to the session and commit the changes
+    session.add_all([review1, review2, review3])
+    session.commit()
 
-for restaurant in restaurants:
-    customers = restaurant.customers
-    print(f"Restaurant: {restaurant.name}")
-    
-    for customer in customers:
-        print(f"Customer: {customer.full_name}")
+    # Test various methods
+    # Example 1: Get the fanciest restaurant
+    fancy_restaurant = restaurant1.fanciest()
+    print(f'The fanciest restaurant is: {fancy_restaurant.name}')
 
-# Close the session
-session.close()
+    # Example 2: Get all reviews for a restaurant
+    all_reviews = restaurant1.all_reviews()
+    print('All reviews for Restaurant 1:')
+    print(all_reviews)
+
+    # Example 3: Get the favorite restaurant for a customer
+    favorite = customer1.favorite_restaurant()
+    print(f"{customer1.full_name}'s favorite restaurant is: {favorite.name}")
+
+    # Example 4: Add a new review for a restaurant
+    new_review = Review(star_rating=4, restaurant=restaurant2, customer=customer2)
+    session.add(new_review)
+    session.commit()
+    print("Added a new review")
+
+    # Example 5: Delete reviews for a restaurant by a customer
+    customer1.delete_reviews(restaurant1)
+    session.commit()
+    print(f"Reviews for {customer1.full_name} at {restaurant1.name} have been deleted.")
+
+    session.close()  # Close the session
