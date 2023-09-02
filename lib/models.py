@@ -10,9 +10,10 @@ restaurant_customer = Table(
     'restaurant_customers',
     Base.metadata,
     Column('restaurant_id', ForeignKey('restaurants.id'), primary_key=True),
-    Column('customer_id', ForeignKey('customers.id'), print_column=True),
+    Column('customer_id', ForeignKey('customers.id'), primary_key=True),
     extend_existing = True,
 )
+
 
 class Restaurant(Base):
     __tablename__ = 'restaurants'
@@ -22,23 +23,27 @@ class Restaurant(Base):
     created_at = Column(DateTime(), server_default=func.now())
 
     reviews = relationship('Review', backref= backref('restaurant'))
-    customers = relationship('Customer',secondary = 'restaurant_customer', back_populates = 'restaurants')
+    customers = relationship('Customer',secondary = restaurant_customer, back_populates = 'restaurants')
 
     def __repr__(self):
         return f'Restaurant(id ={self.id}, ' + \
             f'name = {self.name },' + \
             f'created_at = {self.created_at})'
     
+
 class Customer(Base):
     __tablename__ = 'customers'
     id = Column(Integer(), primary_key=True)
-    name = Column(String())
-    reviews = relationship('Reviews', backref = backref('customer'))
-    restaurants = relationship('Restaurants',secondary = 'restaurant_customer', back_populates = 'customers')
+    full_name = Column(String())
+    favorite_restaurant =Column(String())
+
+    reviews = relationship('Review', backref = backref('customer'))
+    restaurants = relationship('Restaurant',secondary = restaurant_customer, back_populates = 'customers')
 
     def __repr__(self):
         return f'Customer(id = {self.id}' + \
         f'name = {self.name})'
+    
     
 class Review(Base):
     __tablename__ = 'reviews'
