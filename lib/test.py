@@ -1,8 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base, Restaurant, Customer, Review  # Replace 'your_module' with the actual name of the module containing your SQLAlchemy code
+from models import Base, Restaurant, Customer, Review  
 
-# Create the database engine and bind it to your SQLAlchemy models
+
 engine = create_engine('sqlite:///restaurants.db')
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
