@@ -1,10 +1,18 @@
 from sqlalchemy import create_engine,func
-from sqlalchemy import ForeignKey,Column,Integer,String,DateTime
+from sqlalchemy import ForeignKey,Column,Integer,String,DateTime,Table
 from sqlalchemy.orm import relationship,backref
 from sqlalchemy.ext.declarative import declarative_base
 
 engine = create_engine('sqlite:///restaurants.db')
 Base = declarative_base()
+
+restaurant_customer = Table(
+    'restaurant_customers',
+    Base.metadata,
+    Column('restaurant_id', ForeignKey('restaurants.id'), primary_key=True),
+    Column('customer_id', ForeignKey('customers.id'), print_column=True),
+    extend_existing = True,
+)
 
 class Restaurant(Base):
     __tablename__ = 'restaurants'
@@ -14,6 +22,7 @@ class Restaurant(Base):
     created_at = Column(DateTime(), server_default=func.now())
 
     reviews = relationship('Review', backref= backref('restaurant'))
+    customers = relationship('Customer',secondary = 'restaurant_customer', back_populates = 'restaurants')
 
     def __repr__(self):
         return f'Restaurant(id ={self.id}, ' + \
@@ -24,8 +33,8 @@ class Customer(Base):
     __tablename__ = 'customers'
     id = Column(Integer(), primary_key=True)
     name = Column(String())
-
-    reviews = relationship('Reviews', backref = backref('reviews'))
+    reviews = relationship('Reviews', backref = backref('customer'))
+    restaurants = relationship('Restaurants',secondary = 'restaurant_customer', back_populates = 'customers')
 
     def __repr__(self):
         return f'Customer(id = {self.id}' + \
